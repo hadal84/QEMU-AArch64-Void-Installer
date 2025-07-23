@@ -69,17 +69,16 @@ xbps-install -r /mnt -u
 xbps-install -r /mnt base-system
 xbps-remove -r /mnt -R base-container-full
 
-echo "enter a password for the root user"
-read ROOT_PASSWORD
-
 # generate fstab with efi
-genfstab -U /mnt >> /mnt/etc/fstab
+xgenfstab -U /mnt > /mnt/etc/fstab
 
 # chroot territory
 echo "now getting into chroot"
 sudo xchroot /mnt /bin/bash <<EOF
 set -e
-echo "root:${ROOT_PASSWORD}" | chpasswd
+
+echo "now setting root password, please enter."
+passwd
 
 ln -sf /etc/sv/dhcpcd /var/service/
 ln -sf /etc/sv/sshd /var/service/

@@ -2,7 +2,8 @@
 
 TARGET_DISK="/dev/vda"
 
-ROOTFS_FILE=$(wget -qO- https://repo-default.voidlinux.org/live/current/sha256sum.txt | grep 'void-aarch64-musl-ROOTFS' | awk '{print $2}' | sort | tail -n 1)
+LATEST_FILENAME_RAW=$(wget -qO- https://repo-default.voidlinux.org/live/current/sha256sum.txt | grep 'void-aarch64-musl-ROOTFS' | awk '{print $2}' | sort | tail -n 1)
+ROOTFS_FILE=$(echo "$LATEST_FILENAME_RAW" | sed 's/^\.\///; s/[()]//g')
 ROOTFS_URL="https://repo-default.voidlinux.org/live/current/$ROOTFS_FILE"
 
 EFI_SIZE_MB=512

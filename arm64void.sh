@@ -84,7 +84,10 @@ sudo xchroot /mnt /bin/bash <<EOF
 set -e
 
 echo "now setting root password, please enter."
-passwd
+while ! passwd root; do
+    echo "Password setting failed. Please try again for the 'root' user."
+done
+echo "Root password set successfully."
 
 ln -sf /etc/sv/dhcpcd /var/service/
 ln -sf /etc/sv/sshd /var/service/

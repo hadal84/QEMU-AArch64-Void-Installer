@@ -4,7 +4,7 @@ TARGET_DISK="/dev/vda"
 HOSTNAME="voidlinux-aarch64"
 USERNAME="researcher"
 
-ROOTFS_URL="https://repo-default.voidlinux.org/live/current/void-aarch64-musl-ROOTFS-$(date +%Y%m%d).tar.xz"
+ROOTFS_URL="https://repo-default.voidlinux.org/live/current/void-aarch64-musl-ROOTFS.tar.xz"
 
 EFI_SIZE_MB=512
 

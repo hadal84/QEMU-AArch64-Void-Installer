@@ -5,6 +5,14 @@ TARGET_DISK="/dev/vda"
 ROOTFS_FILE=$(wget -qO- https://repo-default.voidlinux.org/live/current/sha256sum.txt | grep 'void-aarch64-musl-ROOTFS' | awk '{print $2}' | sort | tail -n 1)
 ROOTFS_URL="https://repo-default.voidlinux.org/live/current/$ROOTFS_FILE"
 
+echo "DEBUG: ROOTFS_FILE='${ROOTFS_FILE}'"
+echo "DEBUG: ROOTFS_URL='${ROOTFS_URL}'"
+# Use 'cat -v' to show invisible characters like newlines, tabs, etc.
+echo "DEBUG: ROOTFS_FILE (cat -v):"
+echo "$ROOTFS_FILE" | cat -v
+echo "DEBUG: ROOTFS_URL (cat -v):"
+echo "$ROOTFS_URL" | cat -v
+
 EFI_SIZE_MB=512
 
 # error handling

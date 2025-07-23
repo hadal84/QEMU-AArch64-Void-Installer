@@ -1,12 +1,19 @@
 #!/bin/bash
 
 TARGET_DISK="/dev/vda"
-HOSTNAME="voidlinux-aarch64"
-USERNAME="researcher"
 
 ROOTFS_URL="https://repo-default.voidlinux.org/live/current/void-aarch64-musl-ROOTFS.tar.xz"
 
 EFI_SIZE_MB=512
+
+# error handling
+set -euo pipefail
+
+# check for root privileges
+if [ "$(id -u)" -ne 0 ]; then
+  echo "This script must be run as root."
+  exit 1
+fi
 
 echo "Enter keymap (e.g., us, trq, de): "
 read KEYMAP_CONSOLE
@@ -35,11 +42,6 @@ wget -P /tmp -O "$ROOTFS_FILE" "$ROOTFS_URL"
 loadkeys "$KEYMAP_CONSOLE"
 echo "Keyboard layout set to $KEYMAP_CONSOLE for live session."
 
-echo "2. Partitioning disk $TARGET_DISK via sfdisk and parted"
-
-echo "Erasing partitions on $TARGET_DISK via sfdisk."
-sfdisk --delete $TARGET_DISK 
-
 echo "Labeling disk GPT"
 parted -s $TARGET_DISK mklabel gpt
 
@@ -60,7 +62,7 @@ mount "${TARGET_DISK}2" /mnt/
 mkdir -p /mnt/boot/efi/
 mount "${TARGET_DISK}1" /mnt/boot/efi/
 
-tar xvf ROOTFS_FILE -C /mnt
+tar xvf "/tmp/$ROOTFS_FILE" -C /mnt
 
 echo "installing base system images"
 xbps-install -r /mnt -Su xbps
@@ -71,16 +73,17 @@ xbps-remove -r /mnt -R base-container-full
 echo "enter a password for the root user"
 read ROOT_PASSWORD
 
+# generate fstab with efi
+genfstab -U /mnt >> /mnt/etc/fstab
+
 # chroot territory
 echo "now getting into chroot"
-sudo xchroot /mnt /bin/bash <<'EOF'
+sudo xchroot /mnt /bin/bash <<EOF
 set -e
 echo "root:${ROOT_PASSWORD}" | chpasswd
 
 ln -sf /etc/sv/dhcpcd /var/service/
 ln -sf /etc/sv/sshd /var/service/
-
-genfstab -U / >> /etc/fstab
 
 echo "Installing GRUB for UEFI"
 xbps-install -S grub-arm64-efi

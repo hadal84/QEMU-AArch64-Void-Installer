@@ -51,16 +51,47 @@ mkfs.vfat "${TARGET_DISK}1"
 
 echo "Creating partition for root"
 parted -s $TARGET_DISK mkpart primary ext4 513MiB 100%
-mkfs.ext4 ${TARGET_DISK}2"
+mkfs.ext4 "${TARGET_DISK}2"
 
 parted "$TARGET_DISK" print
 
 echo "mounting partitions"
-mount ${TARGET_DISK}2" /mnt/
+mount "${TARGET_DISK}2" /mnt/
 mkdir -p /mnt/boot/efi/
-mount /dev/sda1 /mnt/boot/efi/
+mount "${TARGET_DISK}1" /mnt/boot/efi/
 
+tar xvf ROOTFS_FILE -C /mnt
 
+echo "installing base system images"
+xbps-install -r /mnt -Su xbps
+xbps-install -r /mnt -u
+xbps-install -r /mnt base-system
+xbps-remove -r /mnt -R base-container-full
 
+echo "enter a password for the root user"
+read ROOT_PASSWORD
 
+# chroot territory
+echo "now getting into chroot"
+sudo xchroot /mnt /bin/bash <<'EOF'
+set -e
+echo "root:${ROOT_PASSWORD}" | chpasswd
 
+ln -sf /etc/sv/dhcpcd /var/service/
+ln -sf /etc/sv/sshd /var/service/
+
+genfstab -U / >> /etc/fstab
+
+echo "Installing GRUB for UEFI"
+xbps-install -S grub-arm64-efi
+grub-install --target=arm64-efi --efi-directory=/boot/efi --bootloader-id="Void"
+grub-mkconfig -o /boot/grub/grub.cfg
+xbps-reconfigure -fa
+EOF
+# end of chroot
+echo "exited out of chroot"
+
+echo "finalization, unmounting mountpoints."
+umount -R /mnt
+echo "the script will now put down the machine."
+shutdown -r now

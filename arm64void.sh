@@ -24,11 +24,10 @@ read TIMEZONE
 echo "Beginning installation for Void Linux on AArch64"
 echo "WARNING: This script will destroy ALL DATA on $TARGET_DISK!"
 
-if nc -zw1 google.com 443; then
+if ping -c 1 -W 2 google.com &> /dev/null; then
   echo "Networking is available"
-else 
-  echo "Networking is unavailable."
-  exit
+else
+  echo "Networking doesnt work, configure it and re-run the script."
 fi
 
 xbps-install -S

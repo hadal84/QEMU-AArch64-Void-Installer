@@ -2,7 +2,8 @@
 
 TARGET_DISK="/dev/vda"
 
-ROOTFS_URL="https://repo-default.voidlinux.org/live/current/void-aarch64-musl-ROOTFS.tar.xz"
+ROOTFS_FILE=$(wget -qO- https://repo-default.voidlinux.org/live/current/sha256sum.txt | grep 'void-aarch64-musl-ROOTFS' | awk '{print $2}' | sort | tail -n 1)
+ROOTFS_URL="https://repo-default.voidlinux.org/live/current/$ROOTFS_FILE"
 
 EFI_SIZE_MB=512
 
@@ -35,7 +36,6 @@ xbps-install -S
 xbps-install -y wget xz git parted
 
 echo "Downloading ROOTFS from: $ROOTFS_URL"
-ROOTFS_FILE=$(basename "$ROOTFS_URL")
 wget -P /tmp -O "$ROOTFS_FILE" "$ROOTFS_URL"
 
 loadkeys "$KEYMAP_CONSOLE"

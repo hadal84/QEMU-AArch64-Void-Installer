@@ -1,0 +1,53 @@
+#!/bin/bash
+
+TARGET_DISK="/dev/vda"
+HOSTNAME="voidlinux-aarch64"
+USERNAME="researcher"
+
+ROOTFS_URL="https://repo-default.voidlinux.org/live/current/void-aarch64-musl-ROOTFS-$(date +%Y%m%d).tar.xz"
+
+EFI_SIZE_MB=512
+
+echo "Enter keymap (e.g., us, trq, de): "
+read KEYMAP_CONSOLE
+
+echo "Enter timezone (Europe/Istanbul)"
+read TIMEZONE
+
+echo "Beginning installation for Void Linux on AArch64"
+echo "WARNING: This script will destroy ALL DATA on $TARGET_DISK!"
+
+if nc -zw1 google.com 443; then
+  echo "Networking is available"
+else 
+  echo "Networking is unavailable."
+  exit
+fi
+
+xbps-install -S
+
+xbps-install -y wget xz git parted
+
+echo "Downloading ROOTFS from: $ROOTFS_URL"
+ROOTFS_FILE=$(basename "$ROOTFS_URL")
+wget -P /tmp -O "$ROOTFS_FILE" "$ROOTFS_URL"
+
+loadkeys "$KEYMAP_CONSOLE"
+echo "Keyboard layout set to $KEYMAP_CONSOLE for live session."
+
+echo "2. Partitioning disk $TARGET_DISK via sfdisk and parted"
+
+echo "Erasing partitions on $TARGET_DISK via sfdisk."
+sfdisk --delete $TARGET_DISK 
+
+echo "Labeling disk GPT"
+parted -s $TARGET_DISK mklabel gpt
+
+echo "Creating efi partition"
+parted -s $TARGET_DISK mkpart primary fat32 1MiB 513MiB
+parted -s $TARGET_DISK set 1 esp on
+parted -s $TARGET_DISK set 1 boot on
+
+echo "Creating partition for root"
+parted -s 
+

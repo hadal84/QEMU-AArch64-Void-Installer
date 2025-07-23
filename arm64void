@@ -47,7 +47,20 @@ echo "Creating efi partition"
 parted -s $TARGET_DISK mkpart primary fat32 1MiB 513MiB
 parted -s $TARGET_DISK set 1 esp on
 parted -s $TARGET_DISK set 1 boot on
+mkfs.vfat "${TARGET_DISK}1"
 
 echo "Creating partition for root"
-parted -s 
+parted -s $TARGET_DISK mkpart primary ext4 513MiB 100%
+mkfs.ext4 ${TARGET_DISK}2"
+
+parted "$TARGET_DISK" print
+
+echo "mounting partitions"
+mount ${TARGET_DISK}2" /mnt/
+mkdir -p /mnt/boot/efi/
+mount /dev/sda1 /mnt/boot/efi/
+
+
+
+
 

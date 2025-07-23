@@ -37,10 +37,15 @@ xbps-install -S
 xbps-install -y wget xz git parted
 
 echo "Downloading ROOTFS from: $ROOTFS_URL"
-wget -P /tmp -O "$ROOTFS_FILE" "$ROOTFS_URL"
+wget -O "/tmp/$ROOTFS_FILE" "$ROOTFS_URL"
 
 loadkeys "$KEYMAP_CONSOLE"
 echo "Keyboard layout set to $KEYMAP_CONSOLE for live session."
+
+echo "2. Partitioning disk $TARGET_DISK via sfdisk and parted"
+
+echo "Erasing partitions on $TARGET_DISK via sfdisk."
+sfdisk --delete $TARGET_DISK 
 
 echo "Labeling disk GPT"
 parted -s $TARGET_DISK mklabel gpt

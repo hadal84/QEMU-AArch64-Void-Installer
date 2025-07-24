@@ -2,7 +2,8 @@
 
 TARGET_DISK="/dev/vda"
 
-ROOTFS_FILE=$(wget -qO- https://repo-default.voidlinux.org/live/current/sha256sum.txt | grep 'void-aarch64-musl-ROOTFS' | awk '{print $2}' | sort | tail -n 1)
+LATEST_FILENAME_RAW=$(wget -qO- https://repo-default.voidlinux.org/live/current/sha256sum.txt | grep 'void-aarch64-musl-ROOTFS' | awk '{print $2}' | sort | tail -n 1)
+ROOTFS_FILE=$(echo "$LATEST_FILENAME_RAW" | sed 's/^\.\///; s/[()]//g')
 ROOTFS_URL="https://repo-default.voidlinux.org/live/current/$ROOTFS_FILE"
 
 echo "DEBUG: ROOTFS_FILE='${ROOTFS_FILE}'"
@@ -44,10 +45,15 @@ xbps-install -S
 xbps-install -y wget xz git parted
 
 echo "Downloading ROOTFS from: $ROOTFS_URL"
-wget -P /tmp -O "$ROOTFS_FILE" "$ROOTFS_URL"
+wget -O "/tmp/$ROOTFS_FILE" "$ROOTFS_URL"
 
 loadkeys "$KEYMAP_CONSOLE"
 echo "Keyboard layout set to $KEYMAP_CONSOLE for live session."
+
+echo "2. Partitioning disk $TARGET_DISK via sfdisk and parted"
+
+echo "Erasing partitions on $TARGET_DISK via sfdisk."
+sfdisk --delete $TARGET_DISK 
 
 echo "Labeling disk GPT"
 parted -s $TARGET_DISK mklabel gpt
@@ -86,7 +92,10 @@ sudo xchroot /mnt /bin/bash <<EOF
 set -e
 
 echo "now setting root password, please enter."
-passwd
+while ! passwd root; do
+    echo "Password setting failed. Please try again for the 'root' user."
+done
+echo "Root password set successfully."
 
 ln -sf /etc/sv/dhcpcd /var/service/
 ln -sf /etc/sv/sshd /var/service/

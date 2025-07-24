@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 TARGET_DISK="/dev/vda"
 
@@ -43,6 +44,12 @@ fi
 xbps-install -S
 
 xbps-install -y wget xz git parted
+
+if [ -z "$ROOTFS_FILE" ]; then
+  echo "Error: Could not determine the ROOTFS filename."
+  echo "Please check your network connection and the script's logic for finding the file."
+  exit 1
+fi
 
 echo "Downloading ROOTFS from: $ROOTFS_URL"
 wget -O "/tmp/$ROOTFS_FILE" "$ROOTFS_URL"
